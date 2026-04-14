@@ -67,5 +67,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <Header />
+      <main className="min-h-[calc(100vh-3.5rem)]">
+        <Outlet />
+      </main>
+    </>
+  );
 }
