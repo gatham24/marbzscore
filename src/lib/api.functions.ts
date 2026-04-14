@@ -1,46 +1,26 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-const API_BASE = "https://v3.football.api-sports.io";
-
-let cachedApiKey: string | null = null;
-
-async function getApiKey(): Promise<string> {
-  if (process.env.RAPIDAPI_KEY) {
-    return process.env.RAPIDAPI_KEY;
-  }
-  if (cachedApiKey) {
-    return cachedApiKey;
-  }
-
-  const { data, error } = await supabaseAdmin.rpc("get_secret", { secret_name: "RAPIDAPI_KEY" });
-
-  if (error) {
-    console.error("Vault RPC error:", error);
-    throw new Error(`Failed to fetch API key: ${error.message}`);
-  }
-
-  if (!data || !data.length || !data[0]?.decrypted_secret) {
-    throw new Error("RAPIDAPI_KEY not found in vault");
-  }
-
-  cachedApiKey = data[0].decrypted_secret;
-  return cachedApiKey!;
-}
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 async function apiFetch(endpoint: string, params: Record<string, string> = {}) {
-  const apiKey = await getApiKey();
-  const url = new URL(`${API_BASE}/${endpoint}`);
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  if (!SUPABASE_URL || !SUPABASE_KEY) {
+    throw new Error("Supabase config not available");
+  }
 
-  const response = await fetch(url.toString(), {
-    headers: { "x-apisports-key": apiKey },
+  const response = await fetch(`${SUPABASE_URL}/functions/v1/football-api`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ endpoint, params }),
   });
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`API-Football error [${response.status}]: ${text}`);
+    throw new Error(`API error [${response.status}]: ${text}`);
   }
 
   return await response.json();
