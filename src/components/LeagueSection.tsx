@@ -1,30 +1,31 @@
 import { MatchCard } from "./MatchCard";
-import type { Match } from "@/lib/mock-data";
-import { leagues } from "@/lib/mock-data";
+import type { ApiFixture } from "@/lib/api-types";
 
 interface LeagueSectionProps {
-  league: string;
-  matches: Match[];
+  leagueName: string;
+  leagueCountry: string;
+  leagueLogo: string;
+  leagueFlag: string | null;
+  matches: ApiFixture[];
 }
 
-export function LeagueSection({ league, matches }: LeagueSectionProps) {
-  const leagueInfo = leagues.find(l => l.name === league);
-  const flag = leagueInfo?.flag || "🏆";
-
+export function LeagueSection({ leagueName, leagueCountry, leagueLogo, leagueFlag, matches }: LeagueSectionProps) {
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card">
       <div className="flex items-center gap-2 border-b border-border bg-secondary/30 px-4 py-2.5">
-        <span className="text-base">{flag}</span>
+        {leagueFlag ? (
+          <img src={leagueFlag} alt={leagueCountry} className="h-4 w-4 object-contain" />
+        ) : (
+          <img src={leagueLogo} alt={leagueName} className="h-4 w-4 object-contain" />
+        )}
         <div>
-          <h3 className="text-sm font-semibold text-foreground">{league}</h3>
-          {leagueInfo && (
-            <span className="text-xs text-muted-foreground">{leagueInfo.country}</span>
-          )}
+          <h3 className="text-sm font-semibold text-foreground">{leagueName}</h3>
+          <span className="text-xs text-muted-foreground">{leagueCountry}</span>
         </div>
       </div>
       <div>
         {matches.map(match => (
-          <MatchCard key={match.id} match={match} />
+          <MatchCard key={match.fixture.id} match={match} />
         ))}
       </div>
     </div>
