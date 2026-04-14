@@ -1,5 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-
+import { Header } from "@/components/Header";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -31,11 +31,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "MarbzScore — Live Football Scores" },
+      { name: "description", content: "Follow live football scores, results, standings, and match details in real-time." },
+      { name: "author", content: "MarbzScore" },
+      { property: "og:title", content: "MarbzScore — Live Football Scores" },
+      { property: "og:description", content: "Follow live football scores, results, standings, and match details." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
@@ -67,5 +67,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <>
+      <Header />
+      <main className="min-h-[calc(100vh-3.5rem)]">
+        <Outlet />
+      </main>
+    </>
+  );
 }
