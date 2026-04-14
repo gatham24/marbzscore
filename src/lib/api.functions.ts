@@ -3,39 +3,55 @@ import { z } from "zod";
 
 const API_BASE = "https://v3.football.api-sports.io";
 
-// Cache the API key in memory for the lifetime of the worker
 let cachedApiKey: string | null = null;
 
 async function getApiKey(): Promise<string> {
-  // First try process.env
+  // Try process.env first
   if (process.env.RAPIDAPI_KEY) {
     return process.env.RAPIDAPI_KEY;
   }
 
-  // Then try cached value
   if (cachedApiKey) {
     return cachedApiKey;
   }
 
-  // Fetch from Supabase vault via service role
-  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  // In the Worker runtime, VITE_ env vars are baked in at build time
+  // Use the Supabase REST API with the service role key to fetch from vault
+  const supabaseUrl = process.env.SUPABASE_URL
+    || (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_SUPABASE_URL : undefined);
+
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Supabase credentials not available for fetching API key");
+  // Try using the publishable key with the RPC function
+  const publishableKey = process.env.SUPABASE_PUBLISHABLE_KEY
+    || (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_SUPABASE_ANON_KEY : undefined)
+    || (typeof import.meta !== "undefined" ? (import.meta as any).env?.VITE_SUPABASE_PUBLISHABLE_KEY : undefined);
+
+  const url = supabaseUrl;
+  const key = serviceRoleKey || publishableKey;
+
+  if (!url || !key) {
+    // Log available env vars for debugging
+    const envKeys = Object.keys(process.env).filter(k =>
+      k.includes("SUPA") || k.includes("RAPID") || k.includes("VITE")
+    );
+    console.error("Available env keys:", envKeys.join(", "));
+    throw new Error("No Supabase credentials available to fetch API key");
   }
 
-  const response = await fetch(`${supabaseUrl}/rest/v1/rpc/get_secret`, {
+  const response = await fetch(`${url}/rest/v1/rpc/get_secret`, {
     method: "POST",
     headers: {
-      "apikey": serviceRoleKey,
-      "Authorization": `Bearer ${serviceRoleKey}`,
+      "apikey": key,
+      "Authorization": `Bearer ${key}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ secret_name: "RAPIDAPI_KEY" }),
   });
 
   if (!response.ok) {
+    const text = await response.text();
+    console.error("Vault fetch error:", response.status, text);
     throw new Error(`Failed to fetch API key from vault: ${response.status}`);
   }
 
@@ -68,7 +84,6 @@ async function apiFetch(endpoint: string, params: Record<string, string> = {}) {
   return await response.json();
 }
 
-// Fetch live matches
 export const fetchLiveMatches = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
@@ -80,7 +95,6 @@ export const fetchLiveMatches = createServerFn({ method: "GET" })
     }
   });
 
-// Fetch matches by date
 export const fetchMatchesByDate = createServerFn({ method: "POST" })
   .inputValidator(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }))
   .handler(async ({ data }) => {
@@ -93,7 +107,6 @@ export const fetchMatchesByDate = createServerFn({ method: "POST" })
     }
   });
 
-// Fetch single match details
 export const fetchMatchDetails = createServerFn({ method: "POST" })
   .inputValidator(z.object({ fixtureId: z.number().int().positive() }))
   .handler(async ({ data }) => {
@@ -116,7 +129,6 @@ export const fetchMatchDetails = createServerFn({ method: "POST" })
     }
   });
 
-// Fetch league standings
 export const fetchStandings = createServerFn({ method: "POST" })
   .inputValidator(z.object({
     leagueId: z.number().int().positive(),
