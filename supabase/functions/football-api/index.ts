@@ -3,8 +3,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const API_BASE = "https://v3.football.api-sports.io";
-
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -27,14 +25,30 @@ Deno.serve(async (req) => {
       );
     }
 
-    const url = new URL(`${API_BASE}/${endpoint}`);
+    // Try RapidAPI format first (most common for users signing up via RapidAPI)
+    const rapidApiUrl = new URL(`https://api-football-v1.p.rapidapi.com/v3/${endpoint}`);
     if (params) {
-      Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v as string));
+      Object.entries(params).forEach(([k, v]) => rapidApiUrl.searchParams.set(k, v as string));
     }
 
-    const response = await fetch(url.toString(), {
-      headers: { "x-apisports-key": apiKey },
+    let response = await fetch(rapidApiUrl.toString(), {
+      headers: {
+        "x-rapidapi-key": apiKey,
+        "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
+      },
     });
+
+    // If RapidAPI fails, try direct API-Football format
+    if (!response.ok || response.status === 403) {
+      const directUrl = new URL(`https://v3.football.api-sports.io/${endpoint}`);
+      if (params) {
+        Object.entries(params).forEach(([k, v]) => directUrl.searchParams.set(k, v as string));
+      }
+
+      response = await fetch(directUrl.toString(), {
+        headers: { "x-apisports-key": apiKey },
+      });
+    }
 
     const data = await response.json();
 
