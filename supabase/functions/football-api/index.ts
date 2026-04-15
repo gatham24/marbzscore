@@ -10,6 +10,7 @@ Deno.serve(async (req) => {
 
   try {
     const apiKey = Deno.env.get('RAPIDAPI_KEY');
+    console.log('RAPIDAPI_KEY loaded:', apiKey ? `length=${apiKey.length}, prefix=${apiKey.substring(0, 4)}` : 'NOT SET');
     if (!apiKey) {
       return new Response(
         JSON.stringify({ error: 'RAPIDAPI_KEY not configured. Add your API key in project settings.' }),
