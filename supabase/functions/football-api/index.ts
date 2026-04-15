@@ -17,6 +17,9 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Log key length for debugging (not the actual key)
+    console.log(`API key length: ${apiKey.length}, starts with: ${apiKey.substring(0, 4)}...`);
+
     const { endpoint, params } = await req.json();
     if (!endpoint) {
       return new Response(
@@ -25,39 +28,50 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Try RapidAPI format first (most common for users signing up via RapidAPI)
+    // Try RapidAPI format first
     const rapidApiUrl = new URL(`https://api-football-v1.p.rapidapi.com/v3/${endpoint}`);
     if (params) {
       Object.entries(params).forEach(([k, v]) => rapidApiUrl.searchParams.set(k, v as string));
     }
 
-    let response = await fetch(rapidApiUrl.toString(), {
+    console.log(`Calling RapidAPI: ${rapidApiUrl.toString()}`);
+
+    const rapidResponse = await fetch(rapidApiUrl.toString(), {
       headers: {
         "x-rapidapi-key": apiKey,
         "x-rapidapi-host": "api-football-v1.p.rapidapi.com",
       },
     });
 
-    // If RapidAPI fails, try direct API-Football format
-    if (!response.ok || response.status === 403) {
-      const directUrl = new URL(`https://v3.football.api-sports.io/${endpoint}`);
-      if (params) {
-        Object.entries(params).forEach(([k, v]) => directUrl.searchParams.set(k, v as string));
-      }
+    const rapidData = await rapidResponse.json();
+    console.log(`RapidAPI response status: ${rapidResponse.status}`);
 
-      response = await fetch(directUrl.toString(), {
-        headers: { "x-apisports-key": apiKey },
-      });
+    // Check if RapidAPI worked (no errors object or empty errors)
+    if (rapidResponse.ok && (!rapidData.errors || Object.keys(rapidData.errors).length === 0)) {
+      return new Response(
+        JSON.stringify(rapidData),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const data = await response.json();
+    console.log(`RapidAPI failed, trying direct API. Errors: ${JSON.stringify(rapidData.errors)}`);
+
+    // Fallback to direct API-Football format
+    const directUrl = new URL(`https://v3.football.api-sports.io/${endpoint}`);
+    if (params) {
+      Object.entries(params).forEach(([k, v]) => directUrl.searchParams.set(k, v as string));
+    }
+
+    const directResponse = await fetch(directUrl.toString(), {
+      headers: { "x-apisports-key": apiKey },
+    });
+
+    const directData = await directResponse.json();
+    console.log(`Direct API response status: ${directResponse.status}`);
 
     return new Response(
-      JSON.stringify(data),
-      {
-        status: response.status,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
+      JSON.stringify(directData),
+      { status: directResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
     console.error('Football API error:', error);
