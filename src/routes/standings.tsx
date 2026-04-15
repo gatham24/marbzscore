@@ -5,11 +5,11 @@ import { fetchStandings } from "@/lib/api.functions";
 import type { ApiStanding } from "@/lib/api-types";
 
 const TOP_LEAGUES = [
-  { id: 39, name: "Premier League", country: "England", season: 2024 },
-  { id: 140, name: "La Liga", country: "Spain", season: 2024 },
-  { id: 135, name: "Serie A", country: "Italy", season: 2024 },
-  { id: 78, name: "Bundesliga", country: "Germany", season: 2024 },
-  { id: 61, name: "Ligue 1", country: "France", season: 2024 },
+  { id: 2021, name: "Premier League", country: "England", season: 2025 },
+  { id: 2014, name: "La Liga", country: "Spain", season: 2025 },
+  { id: 2019, name: "Serie A", country: "Italy", season: 2025 },
+  { id: 2002, name: "Bundesliga", country: "Germany", season: 2025 },
+  { id: 2015, name: "Ligue 1", country: "France", season: 2025 },
 ];
 
 export const Route = createFileRoute("/standings")({
