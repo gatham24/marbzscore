@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StandingsRouteImport } from './routes/standings'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MatchMatchIdRouteImport } from './routes/match.$matchId'
 
@@ -19,9 +21,19 @@ const StandingsRoute = StandingsRouteImport.update({
   path: '/standings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SearchRoute = SearchRouteImport.update({
   id: '/search',
   path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +49,55 @@ const MatchMatchIdRoute = MatchMatchIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/standings': typeof StandingsRoute
   '/match/$matchId': typeof MatchMatchIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/standings': typeof StandingsRoute
   '/match/$matchId': typeof MatchMatchIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/login': typeof LoginRoute
   '/search': typeof SearchRoute
+  '/signup': typeof SignupRoute
   '/standings': typeof StandingsRoute
   '/match/$matchId': typeof MatchMatchIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/search' | '/standings' | '/match/$matchId'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/search'
+    | '/signup'
+    | '/standings'
+    | '/match/$matchId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/search' | '/standings' | '/match/$matchId'
-  id: '__root__' | '/' | '/search' | '/standings' | '/match/$matchId'
+  to: '/' | '/login' | '/search' | '/signup' | '/standings' | '/match/$matchId'
+  id:
+    | '__root__'
+    | '/'
+    | '/login'
+    | '/search'
+    | '/signup'
+    | '/standings'
+    | '/match/$matchId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LoginRoute: typeof LoginRoute
   SearchRoute: typeof SearchRoute
+  SignupRoute: typeof SignupRoute
   StandingsRoute: typeof StandingsRoute
   MatchMatchIdRoute: typeof MatchMatchIdRoute
 }
@@ -78,11 +111,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StandingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/search': {
       id: '/search'
       path: '/search'
       fullPath: '/search'
       preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,7 +151,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LoginRoute: LoginRoute,
   SearchRoute: SearchRoute,
+  SignupRoute: SignupRoute,
   StandingsRoute: StandingsRoute,
   MatchMatchIdRoute: MatchMatchIdRoute,
 }
