@@ -5,6 +5,7 @@ import type { ApiFixture } from "@/lib/api-types";
 import { LeagueSection } from "@/components/LeagueSection";
 import { DateSelector } from "@/components/DateSelector";
 import { LiveIndicator } from "@/components/LiveIndicator";
+import { RefreshCountdown } from "@/components/RefreshCountdown";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -73,23 +74,19 @@ function HomePage() {
     load(date);
   }, [date, load]);
 
-  // Auto-refresh live matches every 60s
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const result = await fetchLiveMatches();
-        if (result.fixtures.length > 0) {
-          setFixtures(prev => {
-            const liveIds = new Set(result.fixtures.map((f: ApiFixture) => f.fixture.id));
-            const nonLive = prev.filter(f => !liveIds.has(f.fixture.id));
-            return [...result.fixtures, ...nonLive];
-          });
-        }
-      } catch {
-        // silent fail on auto-refresh
+  const refreshLive = useCallback(async () => {
+    try {
+      const result = await fetchLiveMatches();
+      if (result.fixtures.length > 0) {
+        setFixtures(prev => {
+          const liveIds = new Set(result.fixtures.map((f: ApiFixture) => f.fixture.id));
+          const nonLive = prev.filter(f => !liveIds.has(f.fixture.id));
+          return [...result.fixtures, ...nonLive];
+        });
       }
-    }, 60000);
-    return () => clearInterval(interval);
+    } catch {
+      // silent fail on auto-refresh
+    }
   }, []);
 
   const liveCount = fixtures.filter(f => {
@@ -116,11 +113,20 @@ function HomePage() {
       />
 
       {liveCount > 0 && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg bg-live/10 px-4 py-2.5">
-          <LiveIndicator size="md" />
-          <span className="text-sm font-medium text-foreground">
-            {liveCount} match{liveCount > 1 ? "es" : ""} in progress
-          </span>
+        <div className="mb-4 flex items-center justify-between rounded-lg bg-live/10 px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <LiveIndicator size="md" />
+            <span className="text-sm font-medium text-foreground">
+              {liveCount} match{liveCount > 1 ? "es" : ""} in progress
+            </span>
+          </div>
+          <RefreshCountdown onRefresh={refreshLive} hasLive={liveCount > 0} />
+        </div>
+      )}
+
+      {liveCount === 0 && date === getToday() && !loading && fixtures.length > 0 && (
+        <div className="mb-4 flex justify-end">
+          <RefreshCountdown onRefresh={refreshLive} hasLive={false} />
         </div>
       )}
 
