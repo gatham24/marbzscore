@@ -1,7 +1,11 @@
 import { Link } from "@tanstack/react-router";
-import { Trophy, Home, BarChart3, Search } from "lucide-react";
+import { Trophy, Home, BarChart3, Search, User, LogOut } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
+  const { user, signOut } = useAuth();
+
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-surface/95 backdrop-blur-md">
       <div className="mx-auto max-w-5xl px-4">
@@ -19,6 +23,26 @@ export function Header() {
             <NavItem to="/" icon={<Home className="h-4 w-4" />} label="Scores" />
             <NavItem to="/standings" icon={<BarChart3 className="h-4 w-4" />} label="Standings" />
             <NavItem to="/search" icon={<Search className="h-4 w-4" />} label="Search" />
+            {user ? (
+              <>
+                <NavItem to="/favorites" icon={<User className="h-4 w-4" />} label="My" />
+                <button
+                  onClick={signOut}
+                  className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-secondary"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span className="hidden sm:inline">Out</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign in</span>
+              </Link>
+            )}
           </nav>
         </div>
       </div>

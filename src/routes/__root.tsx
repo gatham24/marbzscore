@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
+import { AuthProvider } from "@/hooks/useAuth";
 import appCss from "../styles.css?url";
 
 function NotFoundComponent() {
@@ -68,11 +69,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <>
+    <AuthProvider>
       <Header />
       <main className="min-h-[calc(100vh-3.5rem)]">
         <Outlet />
       </main>
-    </>
+    </AuthProvider>
   );
 }
