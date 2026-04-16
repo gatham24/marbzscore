@@ -14,7 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      favorite_teams: {
+        Row: {
+          created_at: string
+          id: string
+          team_id: number
+          team_logo: string | null
+          team_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          team_id: number
+          team_logo?: string | null
+          team_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          team_id?: number
+          team_logo?: string | null
+          team_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      saved_matches: {
+        Row: {
+          away_team: string
+          created_at: string
+          home_team: string
+          id: string
+          match_date: string | null
+          match_id: number
+          user_id: string
+        }
+        Insert: {
+          away_team: string
+          created_at?: string
+          home_team: string
+          id?: string
+          match_date?: string | null
+          match_id: number
+          user_id: string
+        }
+        Update: {
+          away_team?: string
+          created_at?: string
+          home_team?: string
+          id?: string
+          match_date?: string | null
+          match_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
