@@ -3,10 +3,9 @@ import { useState, useEffect, useCallback } from "react";
 import { fetchMatchesByDate, fetchLiveMatches } from "@/lib/api.functions";
 import type { ApiFixture } from "@/lib/api-types";
 import { LeagueSection } from "@/components/LeagueSection";
-import { DateSelector } from "@/components/DateSelector";
 import { LiveIndicator } from "@/components/LiveIndicator";
 import { RefreshCountdown } from "@/components/RefreshCountdown";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -39,9 +38,7 @@ function groupByLeague(fixtures: ApiFixture[]) {
   const groups: Record<string, { league: ApiFixture["league"]; matches: ApiFixture[] }> = {};
   for (const f of fixtures) {
     const key = `${f.league.id}`;
-    if (!groups[key]) {
-      groups[key] = { league: f.league, matches: [] };
-    }
+    if (!groups[key]) groups[key] = { league: f.league, matches: [] };
     groups[key].matches.push(f);
   }
   return Object.values(groups);
@@ -58,11 +55,8 @@ function HomePage() {
     setError(null);
     try {
       const result = await fetchMatchesByDate({ data: { date: d } });
-      if (result.error) {
-        setError(result.error);
-      } else {
-        setFixtures(result.fixtures);
-      }
+      if (result.error) setError(result.error);
+      else setFixtures(result.fixtures);
     } catch {
       setError("Failed to load matches");
     } finally {
@@ -70,9 +64,7 @@ function HomePage() {
     }
   }, []);
 
-  useEffect(() => {
-    load(date);
-  }, [date, load]);
+  useEffect(() => { load(date); }, [date, load]);
 
   const refreshLive = useCallback(async () => {
     try {
@@ -84,9 +76,7 @@ function HomePage() {
           return [...result.fixtures, ...nonLive];
         });
       }
-    } catch {
-      // silent fail on auto-refresh
-    }
+    } catch { /* silent */ }
   }, []);
 
   const liveCount = fixtures.filter(f => {
@@ -103,30 +93,49 @@ function HomePage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-4">
-      <DateSelector
-        label={formatDateLabel(date)}
-        onPrev={() => changeDate(-1)}
-        onNext={() => changeDate(1)}
-        onToday={() => setDate(getToday())}
-        isToday={date === getToday()}
-      />
+    <div className="mx-auto max-w-4xl px-4 py-3">
+      {/* Date selector - LiveScore style */}
+      <div className="mb-4 flex items-center gap-2">
+        {/* LIVE button */}
+        <button
+          onClick={() => setDate(getToday())}
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
+            liveCount > 0
+              ? "bg-live text-live-foreground"
+              : "bg-secondary text-muted-foreground"
+          }`}
+        >
+          {liveCount > 0 && <span className="h-1.5 w-1.5 rounded-full bg-live-foreground animate-live-pulse" />}
+          LIVE
+        </button>
 
+        <div className="flex flex-1 items-center justify-center gap-2">
+          <button onClick={() => changeDate(-1)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="min-w-[8rem] text-center text-sm font-semibold text-foreground">
+            {formatDateLabel(date)}
+          </span>
+          <button onClick={() => changeDate(1)} className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+
+        <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
+          <Calendar className="h-4 w-4" />
+        </button>
+      </div>
+
+      {/* Live banner */}
       {liveCount > 0 && (
-        <div className="mb-4 flex items-center justify-between rounded-lg bg-live/10 px-4 py-2.5">
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-live/10 px-4 py-2">
           <div className="flex items-center gap-2">
             <LiveIndicator size="md" />
             <span className="text-sm font-medium text-foreground">
-              {liveCount} match{liveCount > 1 ? "es" : ""} in progress
+              {liveCount} match{liveCount > 1 ? "es" : ""} live
             </span>
           </div>
           <RefreshCountdown onRefresh={refreshLive} hasLive={liveCount > 0} />
-        </div>
-      )}
-
-      {liveCount === 0 && date === getToday() && !loading && fixtures.length > 0 && (
-        <div className="mb-4 flex justify-end">
-          <RefreshCountdown onRefresh={refreshLive} hasLive={false} />
         </div>
       )}
 
@@ -139,9 +148,7 @@ function HomePage() {
       {error && !loading && (
         <div className="rounded-lg bg-destructive/10 px-4 py-8 text-center">
           <p className="text-sm text-destructive">{error}</p>
-          <button onClick={() => load(date)} className="mt-2 text-xs text-primary hover:underline">
-            Try again
-          </button>
+          <button onClick={() => load(date)} className="mt-2 text-xs text-primary hover:underline">Try again</button>
         </div>
       )}
 
@@ -152,7 +159,7 @@ function HomePage() {
       )}
 
       {!loading && !error && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {leagueGroups.map(({ league, matches }) => (
             <LeagueSection
               key={league.id}
