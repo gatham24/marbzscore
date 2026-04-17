@@ -93,11 +93,18 @@ function HomePage() {
     return ["1H", "2H", "ET", "BT", "P", "LIVE", "INT", "HT"].includes(s);
   }).length;
 
-  // Apply league filter
-  const filteredFixtures = useMemo(
-    () => league ? fixtures.filter(f => f.league.id === league) : fixtures,
-    [fixtures, league]
-  );
+  // Apply filters
+  const filteredFixtures = useMemo(() => {
+    return fixtures.filter(f => {
+      if (league && f.league.id !== league) return false;
+      if (team && f.teams.home.id !== team && f.teams.away.id !== team) return false;
+      if (country && f.league.country?.toLowerCase() !== country.toLowerCase()) return false;
+      return true;
+    });
+  }, [fixtures, league, team, country]);
+
+  const activeFilterLabel = leagueName || teamName || country;
+  const hasFilter = !!(league || team || country);
 
   // Split favorites vs others
   const favoriteIds = useMemo(() => new Set(favoriteTeams.map(t => t.team_id)), [favoriteTeams]);
