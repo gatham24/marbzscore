@@ -204,11 +204,11 @@ function HomePage() {
       {!loading && !error && filteredFixtures.length === 0 && (
         <div className="py-20 text-center">
           <p className="text-muted-foreground">
-            {league ? "No matches for this competition on this date" : "No matches on this date"}
+            {hasFilter ? "No matches for this filter on this date" : "No matches on this date"}
           </p>
-          {league && (
-            <button onClick={clearLeagueFilter} className="mt-3 text-xs text-primary hover:underline">
-              Show all competitions
+          {hasFilter && (
+            <button onClick={clearFilter} className="mt-3 text-xs text-primary hover:underline">
+              Show all matches
             </button>
           )}
         </div>
