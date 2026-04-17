@@ -127,19 +127,19 @@ function HomePage() {
     setDate(d.toISOString().split("T")[0]);
   };
 
-  const clearLeagueFilter = () => {
-    navigate({ search: () => ({ league: undefined, leagueName: undefined }) });
+  const clearFilter = () => {
+    navigate({ search: () => ({ league: undefined, leagueName: undefined, team: undefined, teamName: undefined, country: undefined }) });
   };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-3">
-      {/* Active league filter chip */}
-      {league && (
+      {/* Active filter chip */}
+      {hasFilter && (
         <div className="mb-3 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2">
           <span className="text-sm text-foreground">
-            Filtering: <span className="font-semibold">{leagueName || `League #${league}`}</span>
+            Filtering: <span className="font-semibold">{activeFilterLabel}</span>
           </span>
-          <button onClick={clearLeagueFilter} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
+          <button onClick={clearFilter} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
             <X className="h-3 w-3" /> Clear
           </button>
         </div>
