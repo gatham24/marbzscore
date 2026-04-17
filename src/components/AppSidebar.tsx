@@ -58,6 +58,13 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   const [compsOpen, setCompsOpen] = useState(true);
   const [regionsOpen, setRegionsOpen] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
+  const onHome = location.pathname === "/";
+  const homeSearch = useSearch({ strict: false }) as { league?: number; team?: number; country?: string };
+  const activeLeague = onHome ? homeSearch.league : undefined;
+  const activeTeam = onHome ? homeSearch.team : undefined;
+  const activeCountry = onHome ? homeSearch.country : undefined;
+  const activeCls = "bg-sidebar-accent ring-1 ring-primary/40";
 
   const q = search.toLowerCase().trim();
 
