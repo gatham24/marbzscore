@@ -12,6 +12,9 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
     league: search.league ? Number(search.league) : undefined,
     leagueName: typeof search.leagueName === "string" ? search.leagueName : undefined,
+    team: search.team ? Number(search.team) : undefined,
+    teamName: typeof search.teamName === "string" ? search.teamName : undefined,
+    country: typeof search.country === "string" ? search.country : undefined,
   }),
   head: () => ({
     meta: [
@@ -48,7 +51,7 @@ function groupByLeague(fixtures: ApiFixture[]) {
 }
 
 function HomePage() {
-  const { league, leagueName } = Route.useSearch();
+  const { league, leagueName, team, teamName, country } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
   const { teams: favoriteTeams } = useFavoriteTeams();
   const [date, setDate] = useState(getToday);
@@ -90,11 +93,18 @@ function HomePage() {
     return ["1H", "2H", "ET", "BT", "P", "LIVE", "INT", "HT"].includes(s);
   }).length;
 
-  // Apply league filter
-  const filteredFixtures = useMemo(
-    () => league ? fixtures.filter(f => f.league.id === league) : fixtures,
-    [fixtures, league]
-  );
+  // Apply filters
+  const filteredFixtures = useMemo(() => {
+    return fixtures.filter(f => {
+      if (league && f.league.id !== league) return false;
+      if (team && f.teams.home.id !== team && f.teams.away.id !== team) return false;
+      if (country && f.league.country?.toLowerCase() !== country.toLowerCase()) return false;
+      return true;
+    });
+  }, [fixtures, league, team, country]);
+
+  const activeFilterLabel = leagueName || teamName || country;
+  const hasFilter = !!(league || team || country);
 
   // Split favorites vs others
   const favoriteIds = useMemo(() => new Set(favoriteTeams.map(t => t.team_id)), [favoriteTeams]);
@@ -117,19 +127,19 @@ function HomePage() {
     setDate(d.toISOString().split("T")[0]);
   };
 
-  const clearLeagueFilter = () => {
-    navigate({ search: () => ({ league: undefined, leagueName: undefined }) });
+  const clearFilter = () => {
+    navigate({ search: () => ({ league: undefined, leagueName: undefined, team: undefined, teamName: undefined, country: undefined }) });
   };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-3">
-      {/* Active league filter chip */}
-      {league && (
+      {/* Active filter chip */}
+      {hasFilter && (
         <div className="mb-3 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2">
           <span className="text-sm text-foreground">
-            Filtering: <span className="font-semibold">{leagueName || `League #${league}`}</span>
+            Filtering: <span className="font-semibold">{activeFilterLabel}</span>
           </span>
-          <button onClick={clearLeagueFilter} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
+          <button onClick={clearFilter} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
             <X className="h-3 w-3" /> Clear
           </button>
         </div>
@@ -194,11 +204,11 @@ function HomePage() {
       {!loading && !error && filteredFixtures.length === 0 && (
         <div className="py-20 text-center">
           <p className="text-muted-foreground">
-            {league ? "No matches for this competition on this date" : "No matches on this date"}
+            {hasFilter ? "No matches for this filter on this date" : "No matches on this date"}
           </p>
-          {league && (
-            <button onClick={clearLeagueFilter} className="mt-3 text-xs text-primary hover:underline">
-              Show all competitions
+          {hasFilter && (
+            <button onClick={clearFilter} className="mt-3 text-xs text-primary hover:underline">
+              Show all matches
             </button>
           )}
         </div>
