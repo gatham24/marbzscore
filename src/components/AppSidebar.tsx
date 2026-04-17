@@ -110,7 +110,19 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
         {/* Teams Section */}
         <SidebarSection title="TEAMS" isOpen={teamsOpen} onToggle={() => setTeamsOpen(!teamsOpen)}>
           {filteredTeams.map(team => (
-            <SidebarItem key={team.id} logo={team.logo} name={team.name} subtitle={team.country} />
+            <Link
+              key={team.id}
+              to="/"
+              search={{ team: team.id, teamName: team.name }}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              onClick={onClose}
+            >
+              <img src={team.logo} alt={team.name} className="h-5 w-5 object-contain" />
+              <div>
+                <p className="text-sm font-medium text-sidebar-foreground">{team.name}</p>
+                <p className="text-xs text-muted-foreground">{team.country}</p>
+              </div>
+            </Link>
           ))}
         </SidebarSection>
 
@@ -140,10 +152,16 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
         {/* Regions Section */}
         <SidebarSection title="REGION" isOpen={regionsOpen || !!q} onToggle={() => setRegionsOpen(!regionsOpen)}>
           {filteredRegions.map(region => (
-            <div key={region.name} className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent cursor-pointer">
+            <Link
+              key={region.name}
+              to="/"
+              search={{ country: region.name }}
+              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              onClick={onClose}
+            >
               <span className="text-base">{region.flag}</span>
               <span className="text-sm text-sidebar-foreground">{region.name}</span>
-            </div>
+            </Link>
           ))}
         </SidebarSection>
 
