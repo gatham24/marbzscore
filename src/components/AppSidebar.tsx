@@ -121,7 +121,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={team.id}
               to="/"
               search={{ team: team.id, teamName: team.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeTeam === team.id ? activeCls : ""}`}
               onClick={onClose}
             >
               <img src={team.logo} alt={team.name} className="h-5 w-5 object-contain" />
