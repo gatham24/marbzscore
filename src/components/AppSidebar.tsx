@@ -140,7 +140,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={comp.id}
               to="/"
               search={{ league: comp.id, leagueName: comp.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeLeague === comp.id ? activeCls : ""}`}
               onClick={onClose}
             >
               {comp.logo ? (
