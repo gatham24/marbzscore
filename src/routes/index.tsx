@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchMatchesByDate, fetchLiveMatches } from "@/lib/api.functions";
 import type { ApiFixture } from "@/lib/api-types";
@@ -6,6 +6,9 @@ import { LeagueSection } from "@/components/LeagueSection";
 import { LiveIndicator } from "@/components/LiveIndicator";
 import { RefreshCountdown } from "@/components/RefreshCountdown";
 import { useFavoriteTeams } from "@/hooks/useFavorites";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComp } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { Loader2, ChevronLeft, ChevronRight, Calendar, X, Star } from "lucide-react";
 
 export const Route = createFileRoute("/")({
