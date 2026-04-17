@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchMatchesByDate, fetchLiveMatches } from "@/lib/api.functions";
 import type { ApiFixture } from "@/lib/api-types";
@@ -6,6 +6,9 @@ import { LeagueSection } from "@/components/LeagueSection";
 import { LiveIndicator } from "@/components/LiveIndicator";
 import { RefreshCountdown } from "@/components/RefreshCountdown";
 import { useFavoriteTeams } from "@/hooks/useFavorites";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComp } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 import { Loader2, ChevronLeft, ChevronRight, Calendar, X, Star } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -171,9 +174,22 @@ function HomePage() {
           </button>
         </div>
 
-        <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
-          <Calendar className="h-4 w-4" />
-        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
+              <Calendar className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-auto p-0">
+            <CalendarComp
+              mode="single"
+              selected={new Date(date + "T12:00:00")}
+              onSelect={(d) => { if (d) setDate(d.toISOString().split("T")[0]); }}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {liveCount > 0 && (

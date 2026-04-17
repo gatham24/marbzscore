@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useSearch } from "@tanstack/react-router";
 import { Search, ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -58,6 +58,13 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
   const [compsOpen, setCompsOpen] = useState(true);
   const [regionsOpen, setRegionsOpen] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
+  const onHome = location.pathname === "/";
+  const homeSearch = useSearch({ strict: false }) as { league?: number; team?: number; country?: string };
+  const activeLeague = onHome ? homeSearch.league : undefined;
+  const activeTeam = onHome ? homeSearch.team : undefined;
+  const activeCountry = onHome ? homeSearch.country : undefined;
+  const activeCls = "bg-sidebar-accent ring-1 ring-primary/40";
 
   const q = search.toLowerCase().trim();
 
@@ -114,7 +121,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={team.id}
               to="/"
               search={{ team: team.id, teamName: team.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeTeam === team.id ? activeCls : ""}`}
               onClick={onClose}
             >
               <img src={team.logo} alt={team.name} className="h-5 w-5 object-contain" />
@@ -133,7 +140,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={comp.id}
               to="/"
               search={{ league: comp.id, leagueName: comp.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeLeague === comp.id ? activeCls : ""}`}
               onClick={onClose}
             >
               {comp.logo ? (
@@ -156,7 +163,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={region.name}
               to="/"
               search={{ country: region.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeCountry === region.name ? activeCls : ""}`}
               onClick={onClose}
             >
               <span className="text-base">{region.flag}</span>
