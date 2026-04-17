@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation, useSearch } from "@tanstack/react-router";
 import { Search, ChevronRight, Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
