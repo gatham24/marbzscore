@@ -51,7 +51,7 @@ function groupByLeague(fixtures: ApiFixture[]) {
 }
 
 function HomePage() {
-  const { league, leagueName } = Route.useSearch();
+  const { league, leagueName, team, teamName, country } = Route.useSearch();
   const navigate = useNavigate({ from: "/" });
   const { teams: favoriteTeams } = useFavoriteTeams();
   const [date, setDate] = useState(getToday);
