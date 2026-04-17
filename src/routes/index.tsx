@@ -12,6 +12,9 @@ export const Route = createFileRoute("/")({
   validateSearch: (search: Record<string, unknown>) => ({
     league: search.league ? Number(search.league) : undefined,
     leagueName: typeof search.leagueName === "string" ? search.leagueName : undefined,
+    team: search.team ? Number(search.team) : undefined,
+    teamName: typeof search.teamName === "string" ? search.teamName : undefined,
+    country: typeof search.country === "string" ? search.country : undefined,
   }),
   head: () => ({
     meta: [
