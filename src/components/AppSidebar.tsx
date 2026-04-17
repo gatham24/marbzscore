@@ -119,7 +119,8 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
           {(filteredComps || [...COMPETITIONS.slice(0, 5), ...UEFA_COMPETITIONS.slice(0, 1)]).map(comp => (
             <Link
               key={comp.id}
-              to="/standings"
+              to="/"
+              search={{ league: comp.id, leagueName: comp.name }}
               className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
               onClick={onClose}
             >

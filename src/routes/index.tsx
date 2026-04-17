@@ -1,19 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { fetchMatchesByDate, fetchLiveMatches } from "@/lib/api.functions";
 import type { ApiFixture } from "@/lib/api-types";
 import { LeagueSection } from "@/components/LeagueSection";
 import { LiveIndicator } from "@/components/LiveIndicator";
 import { RefreshCountdown } from "@/components/RefreshCountdown";
-import { Loader2, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { useFavoriteTeams } from "@/hooks/useFavorites";
+import { Loader2, ChevronLeft, ChevronRight, Calendar, X, Star } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    league: search.league ? Number(search.league) : undefined,
+    leagueName: typeof search.leagueName === "string" ? search.leagueName : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "MarbzScore — Live Scores & Results" },
       { name: "description", content: "Follow live football scores, results, and match details in real-time." },
-      { property: "og:title", content: "MarbzScore — Live Scores & Results" },
-      { property: "og:description", content: "Follow live football scores, results, and match details in real-time." },
     ],
   }),
   component: HomePage,
@@ -45,6 +48,9 @@ function groupByLeague(fixtures: ApiFixture[]) {
 }
 
 function HomePage() {
+  const { league, leagueName } = Route.useSearch();
+  const navigate = useNavigate({ from: "/" });
+  const { teams: favoriteTeams } = useFavoriteTeams();
   const [date, setDate] = useState(getToday);
   const [fixtures, setFixtures] = useState<ApiFixture[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +90,26 @@ function HomePage() {
     return ["1H", "2H", "ET", "BT", "P", "LIVE", "INT", "HT"].includes(s);
   }).length;
 
-  const leagueGroups = groupByLeague(fixtures);
+  // Apply league filter
+  const filteredFixtures = useMemo(
+    () => league ? fixtures.filter(f => f.league.id === league) : fixtures,
+    [fixtures, league]
+  );
+
+  // Split favorites vs others
+  const favoriteIds = useMemo(() => new Set(favoriteTeams.map(t => t.team_id)), [favoriteTeams]);
+  const { favoriteFixtures, otherFixtures } = useMemo(() => {
+    if (favoriteIds.size === 0) return { favoriteFixtures: [], otherFixtures: filteredFixtures };
+    const fav: ApiFixture[] = [];
+    const other: ApiFixture[] = [];
+    for (const f of filteredFixtures) {
+      if (favoriteIds.has(f.teams.home.id) || favoriteIds.has(f.teams.away.id)) fav.push(f);
+      else other.push(f);
+    }
+    return { favoriteFixtures: fav, otherFixtures: other };
+  }, [filteredFixtures, favoriteIds]);
+
+  const leagueGroups = groupByLeague(otherFixtures);
 
   const changeDate = (offset: number) => {
     const d = new Date(date + "T12:00:00");
@@ -92,11 +117,26 @@ function HomePage() {
     setDate(d.toISOString().split("T")[0]);
   };
 
+  const clearLeagueFilter = () => {
+    navigate({ search: () => ({ league: undefined, leagueName: undefined }) });
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-3">
-      {/* Date selector - LiveScore style */}
+      {/* Active league filter chip */}
+      {league && (
+        <div className="mb-3 flex items-center justify-between rounded-lg bg-primary/10 px-3 py-2">
+          <span className="text-sm text-foreground">
+            Filtering: <span className="font-semibold">{leagueName || `League #${league}`}</span>
+          </span>
+          <button onClick={clearLeagueFilter} className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10">
+            <X className="h-3 w-3" /> Clear
+          </button>
+        </div>
+      )}
+
+      {/* Date selector */}
       <div className="mb-4 flex items-center gap-2">
-        {/* LIVE button */}
         <button
           onClick={() => setDate(getToday())}
           className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
@@ -126,7 +166,6 @@ function HomePage() {
         </button>
       </div>
 
-      {/* Live banner */}
       {liveCount > 0 && (
         <div className="mb-3 flex items-center justify-between rounded-lg bg-live/10 px-4 py-2">
           <div className="flex items-center gap-2">
@@ -152,21 +191,43 @@ function HomePage() {
         </div>
       )}
 
-      {!loading && !error && fixtures.length === 0 && (
+      {!loading && !error && filteredFixtures.length === 0 && (
         <div className="py-20 text-center">
-          <p className="text-muted-foreground">No matches on this date</p>
+          <p className="text-muted-foreground">
+            {league ? "No matches for this competition on this date" : "No matches on this date"}
+          </p>
+          {league && (
+            <button onClick={clearLeagueFilter} className="mt-3 text-xs text-primary hover:underline">
+              Show all competitions
+            </button>
+          )}
         </div>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && filteredFixtures.length > 0 && (
         <div className="space-y-3">
-          {leagueGroups.map(({ league, matches }) => (
+          {favoriteFixtures.length > 0 && (
+            <div className="overflow-hidden rounded-xl border border-primary/30 bg-card">
+              <div className="flex items-center gap-2 border-b border-border bg-primary/10 px-4 py-2">
+                <Star className="h-4 w-4 fill-primary text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Your Teams</h3>
+                <span className="text-xs text-muted-foreground">({favoriteFixtures.length})</span>
+              </div>
+              <div>
+                {favoriteFixtures.map(match => (
+                  <FavoriteMatchRow key={match.fixture.id} match={match} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {leagueGroups.map(({ league: lg, matches }) => (
             <LeagueSection
-              key={league.id}
-              leagueName={league.name}
-              leagueCountry={league.country}
-              leagueLogo={league.logo}
-              leagueFlag={league.flag}
+              key={lg.id}
+              leagueName={lg.name}
+              leagueCountry={lg.country}
+              leagueLogo={lg.logo}
+              leagueFlag={lg.flag}
               matches={matches}
             />
           ))}
@@ -174,4 +235,10 @@ function HomePage() {
       )}
     </div>
   );
+}
+
+// Lightweight row reusing MatchCard pattern via Link
+import { MatchCard } from "@/components/MatchCard";
+function FavoriteMatchRow({ match }: { match: ApiFixture }) {
+  return <MatchCard match={match} />;
 }
