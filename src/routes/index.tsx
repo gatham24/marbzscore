@@ -174,9 +174,22 @@ function HomePage() {
           </button>
         </div>
 
-        <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
-          <Calendar className="h-4 w-4" />
-        </button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="rounded-lg p-1.5 text-muted-foreground hover:bg-secondary hover:text-foreground">
+              <Calendar className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-auto p-0">
+            <CalendarComp
+              mode="single"
+              selected={new Date(date + "T12:00:00")}
+              onSelect={(d) => { if (d) setDate(d.toISOString().split("T")[0]); }}
+              initialFocus
+              className={cn("p-3 pointer-events-auto")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {liveCount > 0 && (
