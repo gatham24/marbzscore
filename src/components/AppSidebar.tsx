@@ -163,7 +163,7 @@ export function AppSidebar({ isOpen, onClose }: { isOpen: boolean; onClose: () =
               key={region.name}
               to="/"
               search={{ country: region.name }}
-              className="flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent"
+              className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-colors hover:bg-sidebar-accent ${activeCountry === region.name ? activeCls : ""}`}
               onClick={onClose}
             >
               <span className="text-base">{region.flag}</span>
